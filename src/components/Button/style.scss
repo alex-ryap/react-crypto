@@ -1,0 +1,37 @@
+@import '../../variables';
+
+.btn {
+  cursor: pointer;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: all 0.3s ease-in-out;
+  color: $text-light-color;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  & > svg {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: $text-main-color;
+    background-color: $main-color;
+  }
+
+  &_border {
+    border: 1px solid $text-light-color;
+
+    &:hover {
+      border-color: transparent;
+    }
+  }
+
+  &_fill {
+    color: $text-main-color;
+    background-color: $secondary-color;
+  }
+}
