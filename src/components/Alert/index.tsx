@@ -35,6 +35,7 @@ export class Alert extends Component<IProps, {}> {
         icon = <IoWarningOutline />;
         break;
     }
+    if (this.props.alert.show) alertClasses.push('alert_show');
 
     return (
       <div className={alertClasses.join(' ')}>

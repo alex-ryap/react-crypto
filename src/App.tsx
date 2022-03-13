@@ -110,7 +110,7 @@ export class App extends PureComponent<{}, IState> {
           this.setState({ coins, alert });
           this.updateCoinPrice(newCoin);
         } else {
-          alert.text = `Coin ${newCoin.name} already add`;
+          alert.text = `Coin ${newCoin.name} already added`;
           alert.type = AlertType.info;
           this.setState({ alert });
         }
