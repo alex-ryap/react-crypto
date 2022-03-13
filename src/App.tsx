@@ -7,14 +7,17 @@ import { Logo } from './components/Logo';
 import { Main } from './components/Main';
 import { Wrapper } from './components/Wrapper';
 import { API_KEY, BASE_URL } from './utils/constants';
-import { Coin } from './utils/interfaces';
-import './App.scss';
+import { ICoin, IAlert } from './utils/interfaces';
 import { normalizeNumber } from './utils/commons';
+import { Alert } from './components/Alert';
+import { AlertType } from './utils/enums';
+import './App.scss';
 
 interface IProps {}
 interface IState {
   currency: string;
-  coins: Coin[];
+  alert: IAlert;
+  coins: ICoin[];
 }
 
 export class App extends PureComponent<{}, IState> {
@@ -23,75 +26,123 @@ export class App extends PureComponent<{}, IState> {
     this.state = {
       currency: 'USD',
       coins: [],
+      alert: {
+        text: '',
+        type: AlertType.info,
+        show: false,
+      },
     };
   }
 
-  componentDidMount() {
-    const dogecoin = {
-      name: 'DOGE',
-      price: 0,
-      diff: 0,
-      interval: 0,
-    };
-    const coins = [dogecoin];
-
-    this.setState({ coins });
-    this.updateCoinPrice(dogecoin);
+  componentDidMount(): void {
+    this.getCoin('DOGE').then((dogecoin) => {
+      if (typeof dogecoin === 'object') {
+        const coins = [dogecoin];
+        this.setState({ coins });
+        this.updateCoinPrice(dogecoin);
+      }
+    });
   }
 
-  updateCoinPrice(coin: Coin) {
+  updateCoinPrice = (coin: ICoin): void => {
     coin.interval = window.setInterval(() => {
-      axios
-        .get(`${BASE_URL}?fsym=${coin.name}&tsyms=USD&api_key=${API_KEY}`)
-        .then((response) => {
+      this.getCoin(coin.name).then((refreshCoin) => {
+        if (typeof refreshCoin === 'object') {
           let coins = [...this.state.coins];
-          const currentPrice = normalizeNumber(
-            response.data[this.state.currency]
-          );
 
           coins = coins.map((coinItem) => {
-            if (coinItem.name === coin.name) {
-              if (coinItem.price && coinItem.price !== currentPrice)
-                coin.diff = normalizeNumber(currentPrice - coinItem.price);
-              coin.price = currentPrice;
+            if (coinItem.name === refreshCoin.name) {
+              if (coinItem.price && coinItem.price !== refreshCoin.price)
+                coin.diff = normalizeNumber(refreshCoin.price - coinItem.price);
+              coin.price = refreshCoin.price;
               coinItem = coin;
             }
 
             return coinItem;
           });
-
           this.setState({ coins });
-        })
-        .catch((err) => {
-          console.log(err.message);
-        });
+        }
+      });
     }, 5000);
-  }
-
-  addCoin = (coinName: string) => {
-    const coins = [...this.state.coins];
-    const alreadyAddedCoin = coins.find((coin) => coin.name === coinName);
-
-    if (!alreadyAddedCoin) {
-      const newCoin = {
-        name: coinName,
-        price: 0,
-        diff: 0,
-        interval: 0,
-      };
-      coins.push(newCoin);
-
-      this.setState({ coins });
-      this.updateCoinPrice(newCoin);
-    }
   };
 
-  removeCoin = (coin: Coin) => {
+  getCoin = async (coinName: string): Promise<ICoin | string> => {
+    return await axios
+      .get(`${BASE_URL}?fsym=${coinName}&tsyms=USD&api_key=${API_KEY}`)
+      .then((response) => {
+        if (response.data?.Response === 'Error')
+          throw new Error(`Sorry! Coin "${coinName}" was not found`);
+
+        const currentPrice = normalizeNumber(
+          response.data[this.state.currency]
+        );
+
+        const coin = {
+          name: coinName,
+          price: currentPrice,
+          diff: 0,
+          interval: 0,
+        };
+
+        return coin;
+      })
+      .catch((err) => {
+        return err.message;
+      });
+  };
+
+  addCoin = (coinName: string): void => {
+    const alert = { ...this.state.alert };
+    alert.show = true;
+
+    this.getCoin(coinName).then((newCoin) => {
+      if (typeof newCoin === 'object') {
+        const coins = [...this.state.coins];
+
+        const alreadyAddedCoin = coins.find(
+          (coin) => coin.name === newCoin.name
+        );
+
+        if (!alreadyAddedCoin) {
+          alert.text = `Coin ${newCoin.name} succesfully add`;
+          alert.type = AlertType.success;
+          coins.push(newCoin);
+          this.setState({ coins, alert });
+          this.updateCoinPrice(newCoin);
+        } else {
+          alert.text = `Coin ${newCoin.name} already add`;
+          alert.type = AlertType.info;
+          this.setState({ alert });
+        }
+      } else {
+        alert.text = newCoin;
+        alert.type = AlertType.warning;
+        this.setState({ alert });
+      }
+    });
+  };
+
+  removeCoin = (coin: ICoin): void => {
     window.clearInterval(coin.interval);
     let coins = [...this.state.coins];
+    let alert = { ...this.state.alert };
+
+    alert.text = `Coin ${coin.name} was removed`;
+    alert.type = AlertType.success;
+    alert.show = true;
 
     coins = coins.filter((coinItem) => coinItem.name !== coin.name);
-    this.setState({ coins });
+
+    this.setState({ coins, alert });
+  };
+
+  hideAlert = (): void => {
+    const alert = { ...this.state.alert };
+    alert.text = '';
+    alert.type = AlertType.info;
+    alert.show = false;
+
+    this.setState({ alert });
   };
 
   render(): ReactNode {
@@ -105,6 +156,11 @@ export class App extends PureComponent<{}, IState> {
           <h1 className="title">Last added coins:</h1>
           <CoinList coins={this.state.coins} removeCoin={this.removeCoin} />
         </Main>
+        {this.state.alert.text ? (
+          <Alert alert={this.state.alert} hideAlert={() => this.hideAlert()} />
+        ) : (
+          ''
+        )}
       </Wrapper>
     );
   }

@@ -1,10 +1,10 @@
 import { Component, ReactNode } from 'react';
-import { Coin } from '../../utils/interfaces';
+import { ICoin } from '../../utils/interfaces';
 import { CoinItem } from '../CoinItem';
 import './style.scss';
 
 interface IProps {
-  coins: Coin[];
+  coins: ICoin[];
   removeCoin: Function;
 }
 
