@@ -1,5 +1,7 @@
 # Getting Started with Create React App
 
+App on Github Pages: https://alex-ryap.github.io/react-crypto
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
