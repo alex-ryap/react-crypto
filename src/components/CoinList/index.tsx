@@ -9,7 +9,7 @@ interface IProps {
 }
 
 export class CoinList extends Component<IProps, {}> {
-  render(): ReactNode {
+  render() {
     return (
       <div className="coin-list">
         {this.props.coins.length > 0 ? (

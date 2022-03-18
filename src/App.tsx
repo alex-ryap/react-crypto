@@ -48,9 +48,7 @@ export class App extends PureComponent<{}, IState> {
     coin.interval = window.setInterval(() => {
       this.getCoin(coin.name).then((refreshCoin) => {
         if (typeof refreshCoin === 'object') {
-          let coins = [...this.state.coins];
-
-          coins = coins.map((coinItem) => {
+          const coins = this.state.coins.map((coinItem) => {
             if (coinItem.name === refreshCoin.name) {
               if (coinItem.price && coinItem.price !== refreshCoin.price)
                 coin.diff = normalizeNumber(refreshCoin.price - coinItem.price);
@@ -124,14 +122,15 @@ export class App extends PureComponent<{}, IState> {
 
   removeCoin = (coin: ICoin): void => {
     window.clearInterval(coin.interval);
-    let coins = [...this.state.coins];
     let alert = { ...this.state.alert };
 
     alert.text = `Coin ${coin.name} was removed`;
     alert.type = AlertType.success;
     alert.show = true;
 
-    coins = coins.filter((coinItem) => coinItem.name !== coin.name);
+    const coins = this.state.coins.filter(
+      (coinItem) => coinItem.name !== coin.name
+    );
 
     this.setState({ coins, alert });
   };
