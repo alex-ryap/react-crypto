@@ -1,8 +1,7 @@
 import {
   ButtonHTMLAttributes,
-  Component,
   MouseEventHandler,
-  ReactNode,
+  PropsWithChildren,
 } from 'react';
 import './style.scss';
 
@@ -13,21 +12,19 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   click?: MouseEventHandler<HTMLButtonElement>;
 }
 
-export class Button extends Component<ButtonProps, {}> {
-  render(): ReactNode {
-    const btnClasses = ['btn'];
-    if (this.props.border) btnClasses.push('btn_border');
-    if (this.props.fill) btnClasses.push('btn_fill');
+export const Button = (props: PropsWithChildren<ButtonProps>) => {
+  const btnClasses = ['btn'];
+  if (props.border) btnClasses.push('btn_border');
+  if (props.fill) btnClasses.push('btn_fill');
 
-    return (
-      <button
-        type={this.props.type}
-        className={btnClasses.join(' ')}
-        onClick={this.props.click}
-      >
-        {this.props.children}
-        {this.props.name}
-      </button>
-    );
-  }
-}
+  return (
+    <button
+      type={props.type}
+      className={btnClasses.join(' ')}
+      onClick={props.click}
+    >
+      {props.children}
+      {props.name}
+    </button>
+  );
+};

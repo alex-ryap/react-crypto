@@ -1,8 +1,6 @@
-import { Component, ReactNode } from 'react';
+import { PropsWithChildren } from 'react';
 import './style.scss';
 
-export class Wrapper extends Component<{}, {}> {
-  render(): ReactNode {
-    return <div className="wrapper">{this.props.children}</div>;
-  }
-}
+export const Wrapper = (props: PropsWithChildren<{}>) => {
+  return <div className="wrapper">{props.children}</div>;
+};

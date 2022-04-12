@@ -1,8 +1,6 @@
-import { Component, ReactNode } from 'react';
+import { PropsWithChildren } from 'react';
 import './style.scss';
 
-export class Header extends Component<{}, {}> {
-  render(): ReactNode {
-    return <header>{this.props.children}</header>;
-  }
-}
+export const Header = (props: PropsWithChildren<{}>) => {
+  return <header>{props.children}</header>;
+};

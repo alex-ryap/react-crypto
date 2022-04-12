@@ -1,168 +1,61 @@
-import axios from 'axios';
-import { PureComponent, ReactNode } from 'react';
+import { FC, useEffect } from 'react';
 import { CoinForm } from './components/CoinForm';
 import { CoinList } from './components/CoinList';
 import { Header } from './components/Header';
 import { Logo } from './components/Logo';
 import { Main } from './components/Main';
 import { Wrapper } from './components/Wrapper';
-import { API_KEY, BASE_URL } from './utils/constants';
-import { ICoin, IAlert } from './utils/interfaces';
-import { normalizeNumber } from './utils/commons';
+import { ICoin } from './utils/interfaces';
 import { Alert } from './components/Alert';
 import { AlertType } from './utils/enums';
 import './App.scss';
+import { useDispatch } from 'react-redux';
+import { addCoin, RemoveCoin } from './store/coins/actions';
+import { selectAlert } from './store/alerts/selectors';
+import { addAlert } from './store/alerts/actions';
+import { useTypedSelector } from './store/hooks';
 
-interface IProps {}
-interface IState {
-  currency: string;
-  alert: IAlert;
-  coins: ICoin[];
-}
+export const App: FC = () => {
+  const dispatch = useDispatch();
+  const alert = useTypedSelector(selectAlert);
 
-export class App extends PureComponent<{}, IState> {
-  constructor(props: IProps) {
-    super(props);
-    this.state = {
-      currency: 'USD',
-      coins: [],
-      alert: {
-        text: '',
-        type: AlertType.info,
-        show: false,
-      },
+  useEffect(() => {
+    dispatch(addCoin('DOGE'));
+  }, [dispatch]);
+
+  const addNewCoin = (coinName: string): void => {
+    dispatch(addCoin(coinName));
+    const newAlert = {
+      text: `Success add coin ${coinName}`,
+      type: AlertType.success,
+      show: true,
     };
-  }
-
-  componentDidMount(): void {
-    this.getCoin('DOGE').then((dogecoin) => {
-      if (typeof dogecoin === 'object') {
-        const coins = [dogecoin];
-        this.setState({ coins });
-        this.updateCoinPrice(dogecoin);
-      }
-    });
-  }
-
-  updateCoinPrice = (coin: ICoin): void => {
-    coin.interval = window.setInterval(() => {
-      this.getCoin(coin.name).then((refreshCoin) => {
-        if (typeof refreshCoin === 'object') {
-          const coins = this.state.coins.map((coinItem) => {
-            if (coinItem.name === refreshCoin.name) {
-              if (coinItem.price && coinItem.price !== refreshCoin.price)
-                coin.diff = normalizeNumber(refreshCoin.price - coinItem.price);
-              coin.price = refreshCoin.price;
-              coinItem = coin;
-            }
-
-            return coinItem;
-          });
-          this.setState({ coins });
-        }
-      });
-    }, 5000);
+    dispatch(addAlert(newAlert));
   };
 
-  getCoin = async (coinName: string): Promise<ICoin | string> => {
-    return await axios
-      .get(`${BASE_URL}?fsym=${coinName}&tsyms=USD&api_key=${API_KEY}`)
-      .then((response) => {
-        if (response.data?.Response === 'Error')
-          throw new Error(`Sorry! Coin "${coinName}" was not found`);
-
-        const currentPrice = normalizeNumber(
-          response.data[this.state.currency]
-        );
-
-        const coin = {
-          name: coinName,
-          price: currentPrice,
-          diff: 0,
-          interval: 0,
-        };
-
-        return coin;
-      })
-      .catch((err) => {
-        return err.message;
-      });
+  const removeCoin = (coin: ICoin): void => {
+    dispatch(RemoveCoin(coin));
+    const newAlert = {
+      text: `Success remove coin ${coin.name}`,
+      type: AlertType.success,
+      show: true,
+    };
+    dispatch(addAlert(newAlert));
   };
 
-  addCoin = (coinName: string): void => {
-    const alert = { ...this.state.alert };
-    alert.show = true;
-
-    this.getCoin(coinName).then((newCoin) => {
-      if (typeof newCoin === 'object') {
-        const coins = [...this.state.coins];
-
-        const alreadyAddedCoin = coins.find(
-          (coin) => coin.name === newCoin.name
-        );
-
-        if (!alreadyAddedCoin) {
-          alert.text = `Coin ${newCoin.name} succesfully add`;
-          alert.type = AlertType.success;
-          coins.push(newCoin);
-          this.setState({ coins, alert });
-          this.updateCoinPrice(newCoin);
-        } else {
-          alert.text = `Coin ${newCoin.name} already added`;
-          alert.type = AlertType.info;
-          this.setState({ alert });
-        }
-      } else {
-        alert.text = newCoin;
-        alert.type = AlertType.warning;
-        this.setState({ alert });
-      }
-    });
-  };
-
-  removeCoin = (coin: ICoin): void => {
-    window.clearInterval(coin.interval);
-    let alert = { ...this.state.alert };
-
-    alert.text = `Coin ${coin.name} was removed`;
-    alert.type = AlertType.success;
-    alert.show = true;
-
-    const coins = this.state.coins.filter(
-      (coinItem) => coinItem.name !== coin.name
-    );
-
-    this.setState({ coins, alert });
-  };
-
-  hideAlert = (): void => {
-    const alert = { ...this.state.alert };
-    alert.text = '';
-    alert.type = AlertType.info;
-    alert.show = false;
-
-    this.setState({ alert });
-  };
-
-  render(): ReactNode {
-    return (
-      <Wrapper>
-        <Header>
-          <Logo />
-          <CoinForm addCoin={this.addCoin} />
-        </Header>
-        <Main>
-          <h1 className="title">Last added coins:</h1>
-          <CoinList coins={this.state.coins} removeCoin={this.removeCoin} />
-        </Main>
-        {this.state.alert.text ? (
-          <Alert alert={this.state.alert} hideAlert={() => this.hideAlert()} />
-        ) : (
-          ''
-        )}
-      </Wrapper>
-    );
-  }
-}
+  return (
+    <Wrapper>
+      <Header>
+        <Logo />
+        <CoinForm addCoin={addNewCoin} />
+      </Header>
+      <Main>
+        <h1 className="title">Last added coins:</h1>
+        <CoinList removeCoin={removeCoin} />
+      </Main>
+      {alert.text ? <Alert alert={alert} /> : ''}
+    </Wrapper>
+  );
+};
 
 export default App;

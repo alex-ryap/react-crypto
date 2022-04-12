@@ -3,3 +3,17 @@ export enum AlertType {
   warning,
   info,
 }
+
+export enum CoinActions {
+  GET_COINS_LOADING = 'COINS:GET_COINS_LOADING',
+  GET_COINS_SUCCESS = 'COINS:GET_COINS_SUCCESS',
+  GET_COINS_FAILURE = 'COINS:GET_COINS_FAILURE',
+  UPDATE_COIN = 'COINS::UPDATE_COIN',
+  ADD_COIN = 'COINS::ADD_COIN',
+  REMOVE_COIN = 'COINS::REMOVE_COIN',
+}
+
+export enum AlertActions {
+  ADD_ALERT = 'ALERT::ADD_ALERT',
+  REMOVE_ALERT = 'ALERT::REMOVE_ALERT',
+}
