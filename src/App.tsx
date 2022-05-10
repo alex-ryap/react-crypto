@@ -1,61 +1,57 @@
-import { FC, useEffect } from 'react';
-import { CoinForm } from './components/CoinForm';
-import { CoinList } from './components/CoinList';
+import styled from 'styled-components';
 import { Header } from './components/Header';
 import { Logo } from './components/Logo';
+import { SearchForm } from './components/SearchForm';
 import { Main } from './components/Main';
-import { Wrapper } from './components/Wrapper';
-import { ICoin } from './utils/interfaces';
-import { Alert } from './components/Alert';
-import { AlertType } from './utils/enums';
-import './App.scss';
-import { useDispatch } from 'react-redux';
-import { addCoin, RemoveCoin } from './store/coins/actions';
-import { selectAlert } from './store/alerts/selectors';
-import { addAlert } from './store/alerts/actions';
-import { useTypedSelector } from './store/hooks';
+import { Coins } from './components/Coins';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { hide, SelectAlert } from './store/coinsSlice';
+import { Alert, Snackbar } from '@mui/material';
+import { useCallback } from 'react';
 
-export const App: FC = () => {
-  const dispatch = useDispatch();
-  const alert = useTypedSelector(selectAlert);
+const AppContainer = styled.div`
+  min-height: 100vh;
+  background-color: #261e35;
+`;
 
-  useEffect(() => {
-    dispatch(addCoin('DOGE'));
-  }, [dispatch]);
+function App() {
+  const dispatch = useAppDispatch();
+  const alert = useAppSelector(SelectAlert);
 
-  const addNewCoin = (coinName: string): void => {
-    dispatch(addCoin(coinName));
-    const newAlert = {
-      text: `Success add coin ${coinName}`,
-      type: AlertType.success,
-      show: true,
-    };
-    dispatch(addAlert(newAlert));
-  };
+  const handleClose = useCallback(
+    (event: React.SyntheticEvent | Event, reason?: string) => {
+      if (reason === 'clickaway') {
+        return;
+      }
 
-  const removeCoin = (coin: ICoin): void => {
-    dispatch(RemoveCoin(coin));
-    const newAlert = {
-      text: `Success remove coin ${coin.name}`,
-      type: AlertType.success,
-      show: true,
-    };
-    dispatch(addAlert(newAlert));
-  };
+      dispatch(hide());
+    },
+    [dispatch]
+  );
 
   return (
-    <Wrapper>
+    <AppContainer>
       <Header>
         <Logo />
-        <CoinForm addCoin={addNewCoin} />
+        <SearchForm />
       </Header>
       <Main>
-        <h1 className="title">Last added coins:</h1>
-        <CoinList removeCoin={removeCoin} />
+        <Coins />
       </Main>
-      {alert.text ? <Alert alert={alert} /> : ''}
-    </Wrapper>
+      {alert.show && (
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          autoHideDuration={3000}
+          open={alert.show}
+          onClose={handleClose}
+        >
+          <Alert onClose={handleClose} severity={alert.type} variant="filled">
+            {alert.text}
+          </Alert>
+        </Snackbar>
+      )}
+    </AppContainer>
   );
-};
+}
 
 export default App;
