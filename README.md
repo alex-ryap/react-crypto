@@ -4,6 +4,10 @@ Web application React Crypto.
 
 You can add coins and get actually prices for them every 5 sec.
 
+## Netlify
+
+https://rococo-donut-f0da59.netlify.app
+
 ## Used technologies
 
 - TypeScript,
