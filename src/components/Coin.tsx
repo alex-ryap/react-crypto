@@ -5,7 +5,7 @@ import {
   CardContent,
   Typography,
 } from '@mui/material';
-import { FC, ReactNode, useCallback, useEffect } from 'react';
+import { FC, memo, ReactNode, useCallback, useEffect } from 'react';
 import { fetchCoin } from '../store/fetchCoinPrice';
 import { useAppDispatch } from '../store/hooks';
 import { ICoin } from '../utils/interfaces';
@@ -49,7 +49,7 @@ interface IProps {
   children?: ReactNode;
 }
 
-export const Coin: FC<IProps> = ({ data, children }) => {
+const CoinComponent: FC<IProps> = ({ data, children }) => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -65,8 +65,10 @@ export const Coin: FC<IProps> = ({ data, children }) => {
     [dispatch]
   );
 
+  console.log(`Render ${data.name}`);
+
   return (
-    <CustomCard>
+    <CustomCard elevation={3}>
       <CustomCardHeader>
         <Typography variant="h5">{data.name}</Typography>
         {data.diff > 0 ? (
@@ -91,3 +93,5 @@ export const Coin: FC<IProps> = ({ data, children }) => {
     </CustomCard>
   );
 };
+
+export const Coin = memo(CoinComponent);
